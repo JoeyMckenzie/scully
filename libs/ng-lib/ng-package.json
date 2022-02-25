@@ -3,5 +3,12 @@
   "dest": "../../dist/libs/ng-lib",
   "lib": {
     "entryFile": "src/public-api.ts"
-  }
+  },
+  "allowedNonPeerDependencies": [
+    "rxjs"
+  ],
+  "whitelistedNonPeerDependencies": [
+    "node-fetch",
+    "rxjs"
+  ]
 }

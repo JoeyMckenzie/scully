@@ -8,11 +8,13 @@ import { AppComponent } from './app.component';
 @NgModule({
   declarations: [AppComponent],
   imports: [
-    BrowserModule,
+    BrowserModule, //.withServerTransition({ appId: 'sampleBlog' }),
     HttpClientModule,
     AppRoutingModule,
-    ScullyLibModule.forRoot({ useTransferState: true, alwaysMonitor: true })
+    ScullyLibModule
+      .forRoot({ useTransferState: true, alwaysMonitor: true })
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule {}
+export class AppModule { }
+

@@ -28,6 +28,9 @@
     "ng-lib": {
       "tags": []
     },
+    "platform-server": {
+      "tags": []
+    },
     "plugins-base-href-rewrite": {
       "tags": []
     },
@@ -55,6 +58,12 @@
     "plugins-scully-plugin-flash-prevention": {
       "tags": []
     },
+    "plugins-scully-plugin-puppeteer": {
+      "tags": []
+    },
+    "plugins-scully-plugin-playwright": {
+      "tags": []
+    },
     "plugins-scully-plugin-remove-scripts": {
       "tags": []
     },
@@ -72,10 +81,16 @@
     },
     "scully-schematics": {
       "tags": ["schematics"]
+    },
+    "sps-sample": {
+      "tags": []
+    },
+    "universal": {
+      "tags": []
     }
   },
   "affected": {
-    "defaultBase": "master"
+    "defaultBase": "main"
   },
   "targetDependencies": {
     "build": [

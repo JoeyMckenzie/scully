@@ -1,10 +1,11 @@
 import { ModuleWithProviders, NgModule } from '@angular/core';
+import { HttpClientModule} from '@angular/common/http';
 import { ScullyDefaultSettings, ScullyLibConfig, SCULLY_LIB_CONFIG } from './config/scully-config';
 import { IdleMonitorService } from './idleMonitor/idle-monitor.service';
 import { ScullyContentModule } from './scully-content/scully-content.module';
 
 @NgModule({
-  imports: [ScullyContentModule],
+  imports: [ScullyContentModule, HttpClientModule],
   exports: [ScullyContentModule],
 })
 export class ScullyLibModule {
@@ -13,9 +14,8 @@ export class ScullyLibModule {
    * First, we separate out the component in a separate module to prevent a circulair injection
    * second we create a constuctor that activates the IdleMonitorService. as that is provided for 'root'
    * there will be only 1 instance in our app.
-   * We don't need forRoot, as we are not configuring anything in here.
    */
-  static forRoot(config: ScullyLibConfig = ScullyDefaultSettings): ModuleWithProviders<any> {
+  static forRoot(config: ScullyLibConfig = ScullyDefaultSettings): ModuleWithProviders<ScullyLibModule> {
     config = Object.assign({}, ScullyDefaultSettings, config);
     return {
       ngModule: ScullyLibModule,

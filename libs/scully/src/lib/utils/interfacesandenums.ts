@@ -1,5 +1,4 @@
-import { LaunchOptions, ResourceType } from 'puppeteer';
-import { LogSeverity } from './log';
+import { PuppeteerNodeLaunchOptions } from 'puppeteer';
 
 export enum RouteTypes {
   json = 'json',
@@ -14,6 +13,8 @@ export interface ScullyConfig {
   projectName?: string;
   /** the folder where project is. Can be any off the projects in a repo, read from angular.json */
   projectRoot?: string;
+  /** path to the module for the Scully Platfrom Server Renderer */
+  spsModulePath?: string;
   /** the folder where the project sources resides, read from angular.json */
   sourceRoot?: string;
   /** Array with string ID's of the content-renderers that will be run on all routes */
@@ -45,8 +46,7 @@ export interface ScullyConfig {
   /** optional proxy config file, uses the same config file as the CLI */
   proxyConfig?: string;
   /** optional launch-options for puppeteer */
-  puppeteerLaunchOptions?: LaunchOptions;
-  /** hostname to use for local server, defaults to `localhost` */
+  puppeteerLaunchOptions?: PuppeteerNodeLaunchOptions;  /** hostname to use for local server, defaults to `localhost` */
   hostName?: string;
   /** optional hostURL, if this is provided, we are going to use this server instead of the build-in one. */
   hostUrl?: string;
@@ -55,7 +55,7 @@ export interface ScullyConfig {
   /** the maximum of concurrent puppeteer tabs open. defaults to the available amounts of cores */
   maxRenderThreads?: number;
   /** the resource types to ignore when generating pages via Puppeteer */
-  ignoreResourceTypes?: ResourceType[];
+  ignoreResourceTypes?: string[];
   /** how to handle 404 in Scully server */
   handle404?: string;
   /** specify the project target propery, defaults to 'architect' */

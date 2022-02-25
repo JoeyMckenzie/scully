@@ -1,15 +1,12 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, of, ReplaySubject, merge } from 'rxjs';
+import { NavigationEnd, Router } from '@angular/router';
 import {
-  catchError,
-  map,
-  shareReplay,
-  switchMap,
-  filter,
-} from 'rxjs/operators';
-import { fetchHttp } from '../utils/fetchHttp';
-import { Router, NavigationEnd, NavigationStart } from '@angular/router';
+  catchError, filter, map, merge, Observable, of, ReplaySubject, shareReplay,
+  switchMap
+} from 'rxjs';
 import { basePathOnly } from '../utils/basePathOnly';
+import { fetchHttp } from '../utils/fetchHttp';
 
 export interface ScullyRoute {
   route: string;
@@ -31,7 +28,7 @@ export class ScullyRoutesService {
    * An observable with all routes, published and unpublished alike
    */
   allRoutes$: Observable<ScullyRoute[]> = this.refresh.pipe(
-    switchMap(() => fetchHttp<ScullyRoute[]>('assets/scully-routes.json')),
+    switchMap(() => this.http.get('assets/scully-routes.json')),
     catchError(() => {
       console.warn(
         'Scully routes file not found, are you running the Scully generated version of your site?'
@@ -78,7 +75,7 @@ export class ScullyRoutesService {
     shareReplay({ refCount: false, bufferSize: 1 })
   );
 
-  constructor(private router: Router) {
+  constructor(private router: Router, private http: HttpClient) {
     /** kick off first cycle */
     this.reload();
   }

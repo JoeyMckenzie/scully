@@ -1,10 +1,24 @@
 import { DOCUMENT } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { NavigationEnd, NavigationStart, Router } from '@angular/router';
-import { BehaviorSubject, NEVER, Observable, of } from 'rxjs';
-import { catchError, filter, first, map, pluck, shareReplay, switchMap, take, takeWhile, tap } from 'rxjs/operators';
+import { GuardsCheckEnd, NavigationStart, Router } from '@angular/router';
+import {
+  BehaviorSubject,
+  catchError,
+  filter,
+  first,
+  firstValueFrom,
+  map,
+  NEVER,
+  Observable,
+  of,
+  pluck,
+  shareReplay,
+  switchMap,
+  takeWhile,
+  tap,
+} from 'rxjs';
 import { basePathOnly } from '../utils/basePathOnly';
-import { fetchHttp } from '../utils/fetchHttp';
 import { isScullyGenerated, isScullyRunning } from '../utils/isScully';
 import { mergePaths } from '../utils/merge-paths';
 
@@ -58,15 +72,15 @@ export class TransferStateService {
     /** prevent emitting before navigation to _this_ URL is done. */
     switchMap((e: NavigationStart) =>
       this.router.events.pipe(
-        filter((ev) => ev instanceof NavigationEnd && ev.url === e.url),
+        filter((ev) => ev instanceof GuardsCheckEnd && ev.url === e.url),
         first()
       )
     ),
-    map((ev: NavigationEnd) => basePathOnly(ev.urlAfterRedirects || ev.url)),
+    map((ev: GuardsCheckEnd) => basePathOnly(ev.urlAfterRedirects || ev.url)),
     shareReplay(1)
   );
 
-  constructor(@Inject(DOCUMENT) private document: Document, private router: Router) {}
+  constructor(@Inject(DOCUMENT) private document: Document, private router: Router, private http: HttpClient) {}
 
   startMonitoring() {
     if (window && window['ScullyIO-injected'] && window['ScullyIO-injected'].inlineStateOnly) {
@@ -85,23 +99,31 @@ export class TransferStateService {
         this.stateBS.next(exposed.transferState);
         this.saveState(exposed.transferState);
       }
-    } else if (isScullyGenerated()) {
-      // On the client AFTER scully rendered it
+    } else {
+      // On the client AFTER Scully rendered it. Also store the state in case the user comes from a non-scully page
       this.initialUrl = window.location.pathname || '__no_NO_no__';
       this.initialUrl = this.initialUrl !== '/' && this.initialUrl.endsWith('/') ? this.initialUrl.slice(0, -1) : this.initialUrl;
       /** set the initial state */
-      this.stateBS.next((window && window[SCULLY_SCRIPT_ID]) || {});
+      if (isScullyGenerated()) {
+        /** only update the initial state when the page is Scully generated */
+        this.stateBS.next((window && window[SCULLY_SCRIPT_ID]) || {});
+      }
     }
   }
 
   private injectScript() {
     this.script = this.document.createElement('script');
     this.script.setAttribute('id', SCULLY_SCRIPT_ID);
-    let last = document.body.lastChild;
+    let last = this.document.body.lastChild;
     while (last.previousSibling.nodeName === 'SCRIPT') {
       last = last.previousSibling as ChildNode;
     }
-    document.body.insertBefore(this.script, last);
+    // console.log(`
+    // --------------------------------------------------
+    //    Welp! ${this.script}
+    // --------------------------------------------------
+    // `)
+    this.document.body.insertBefore(this.script, last);
   }
 
   /**
@@ -192,7 +214,7 @@ export class TransferStateService {
     /** put this in the next event cycle so the correct route can be read */
     await new Promise((r) => setTimeout(r, 0));
     /** get the current url */
-    const currentUrl = await this.nextUrl.pipe(take(1)).toPromise();
+    const currentUrl = await firstValueFrom(this.nextUrl);
     const baseUrl = base(currentUrl);
     if (this.currentBaseUrl === baseUrl) {
       /** already monitoring, don't tho a thing */
@@ -227,14 +249,16 @@ export class TransferStateService {
   }
 
   private readFromJson(url: string): Promise<object> {
-    return fetchHttp<object>(dropPreSlash(mergePaths(url, '/data.json')));
+    return firstValueFrom(this.http.get<object>(dropPreSlash(mergePaths(url, '/data.json'))));
   }
 
   private readFromIndex(url): Promise<object> {
-    return fetchHttp<string>(dropPreSlash(mergePaths(url, '/index.html')), 'text').then((html: string) => {
-      const newStateStr = html.split(SCULLY_STATE_START)[1].split(SCULLY_STATE_END)[0];
-      return JSON.parse(unescapeHtml(newStateStr));
-    });
+    return firstValueFrom(this.http.get(dropPreSlash(mergePaths(url, '/index.html')), { responseType: 'text' })).then(
+      (html: string) => {
+        const newStateStr = html.split(SCULLY_STATE_START)[1].split(SCULLY_STATE_END)[0];
+        return JSON.parse(unescapeHtml(newStateStr));
+      }
+    );
   }
 }
 

@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { ScullyRoute, ScullyRoutesService, TransferStateService } from '@scullyio/ng-lib';
-import { map } from 'rxjs/operators';
+import { map } from 'rxjs';
 
 @Component({
   selector: 'app-blog-holder',
@@ -24,7 +24,7 @@ import { map } from 'rxjs/operators';
 })
 export class BlogHolderComponent {
   blogs$ = this.sts.useScullyTransferState(
-    'blogRotues',
+    'blogRoutes',
     this.srs.available$.pipe(
       map((routeList) => routeList.filter((route: ScullyRoute) => route.route.startsWith(`/blog/`))),
       map((blogs) => blogs.sort((a, b) => (a.date < b.date ? -1 : 1)))
